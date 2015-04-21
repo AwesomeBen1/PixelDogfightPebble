@@ -1,0 +1,46 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "companyName": "Ben Chapman-Kish",
+    "longName": "Pixel Dogfight",
+    "projectType": "native",
+    "resources": {
+        "media": [
+            {
+                "file": "images/MenuIcon.png",
+                "menuIcon": true,
+                "name": "MENU_ICON",
+                "type": "png"
+            },
+            {
+                "file": "images/Plane 2.png",
+                "name": "PLANE2_IMAGE",
+                "type": "png-trans"
+            },
+            {
+                "file": "images/Plane 1.png",
+                "name": "PLANE1_IMAGE",
+                "type": "png-trans"
+            },
+            {
+                "file": "images/Background.png",
+                "name": "BG_IMAGE",
+                "type": "png"
+            }
+        ]
+    },
+    "sdkVersion": "3",
+    "shortName": "Pixel Dogfight",
+    "targetPlatforms": [
+        "aplite",
+        "basalt"
+    ],
+    "uuid": "06db2ea9-4ec2-4dd5-98c2-03db50fc35cc",
+    "versionCode": 1,
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": false
+    }
+}
