@@ -9,20 +9,15 @@
     "resources": {
         "media": [
             {
+                "file": "images/plane1.png",
+                "name": "PLANE1_IMAGE",
+                "type": "png"
+            },
+            {
                 "file": "images/MenuIcon.png",
                 "menuIcon": true,
                 "name": "MENU_ICON",
                 "type": "png"
-            },
-            {
-                "file": "images/Plane 2.png",
-                "name": "PLANE2_IMAGE",
-                "type": "png-trans"
-            },
-            {
-                "file": "images/Plane 1.png",
-                "name": "PLANE1_IMAGE",
-                "type": "png-trans"
             },
             {
                 "file": "images/Background.png",

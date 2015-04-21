@@ -1,50 +1,50 @@
 // Pixel Dogfight for Pebble
-// Made by Ben Chapman-Kish from 2015-04-09 to 2015-09-10
+// Made by Ben Chapman-Kish from 2015-04-09 to 2015-04-20
 #include <pebble.h>
 	
 #define TIMER_MS 50
 
-typedef struct {
-	GBitmap *image;
-	// Positions and angle are in hundredths of a pixel
-	int x, y, angle, mcdwn, scdwn;
-} Plane;
-
 static Window *main_menu_w, *main_game_w;
 static MenuLayer *main_menu_l;
 static Layer *game_layer;
-static GBitmap *bg_bitmap, *p1_bitmap/*, *p2_bitmap*/;
+static GBitmap *bg_bitmap, *p1_bitmap;
 static BitmapLayer *bg_layer;
-//static RotBitmapLayer *p1_layer/*, *p2_layer*/;
 //static int p1attack = 1, p2attack = 1;
-static Plane *Player1/*, *Player2*/;
-
-
-
-static Plane *plane_create(int x, int y, int angle) {
-	Plane *new_plane = malloc(sizeof(Plane));
-	new_plane->x = x * 100;
-	new_plane->y = y * 100;
-	new_plane->angle = angle * 100;
-	new_plane->mcdwn = 20;
-	new_plane->scdwn = 100;
-	return new_plane;
-}
-
+static Plane *Player1;
 
 void game_render(Layer *layer, GContext *ctx) {
-	graphics_draw_bitmap_in_rect(ctx, p1_bitmap, (GRect) {.origin = {Player1->x, Player1->y}, .size = {15, 12}});
-	//graphics_draw_bitmap_in_rect(ctx, p2_bitmap, (GRect) {.origin = {Player2->x, Player2->y}, .size = {15, 12}});
+	player1_render(ctx);
 }
 
 static void update_game_frame(void *data) {
-	Player1->x += 10;
-	if (Player1->x > 144 - 7) {
-		Player1->x = 0;
-	}
+	player1_move();
+	// Player 1 movement logic
+	
+	
 	app_timer_register(TIMER_MS, update_game_frame, NULL);
 	layer_mark_dirty(game_layer);
 }
+
+
+
+static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
+	
+}
+
+static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
+	Player1->angle = (Player1->angle + 10) % 360;
+}
+
+static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
+	Player1->angle = (Player1->angle - 10) % 360;
+}
+
+static void click_config_provider(void *context) {
+	window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
+	window_single_click_subscribe(BUTTON_ID_UP, up_click_handler);
+	window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
+};
+
 
 
 
@@ -108,14 +108,19 @@ void game_window_load(Window *window) {
 	bitmap_layer_set_bitmap(bg_layer, bg_bitmap);
 	layer_add_child(window_layer, bitmap_layer_get_layer(bg_layer));
 	
-	Player1 = plane_create(20, 40, 0);
-	//Player2 = plane_create(144-20, 40, 180);
-	
+	game_layer = layer_create(bounds);
 	layer_set_update_proc(game_layer, game_render);
+	layer_add_child(window_layer, game_layer);
+	
+	p1_bitmap = gbitmap_create_with_resource(RESOURCE_ID_PLANE1_IMAGE);
+	Player1 = plane_create(20, 120, 0);
+	
 	app_timer_register(TIMER_MS, update_game_frame, NULL);
 }
 
 void game_window_unload(Window *window) {
+	layer_destroy(game_layer);
+	gbitmap_destroy(p1_bitmap);
 	gbitmap_destroy(bg_bitmap);
 	bitmap_layer_destroy(bg_layer);
 }
@@ -140,7 +145,7 @@ void main_menu_load(Window *window) {
 }
 
 void main_menu_unload(Window *window) {
-	
+	menu_layer_destroy(main_menu_l);
 }
 
 void init() {
@@ -151,6 +156,7 @@ void init() {
   });
 	
 	main_game_w = window_create();
+	window_set_click_config_provider(main_game_w, click_config_provider);
 	window_set_window_handlers(main_game_w, (WindowHandlers) {
     .load = game_window_load,
     .unload = game_window_unload
