@@ -2,8 +2,10 @@
 
 typedef struct {
 	// Positions are in tenths of a pixel
-	int player, x, y, rot, speed, cdwn;
+	int x, y, speed, cdwn;
+	int8_t player, rot;
 	int16_t w, h;
+	bool crashed;
 	GBitmap* bitmaps[16];
 } Plane;
 

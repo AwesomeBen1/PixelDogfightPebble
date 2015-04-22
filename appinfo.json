@@ -9,6 +9,11 @@
     "resources": {
         "media": [
             {
+                "file": "images/you-lose.png",
+                "name": "ENG_GAME_LOSE",
+                "type": "png"
+            },
+            {
                 "file": "images/plane1a16.png",
                 "name": "PLANE1_R15",
                 "type": "png"

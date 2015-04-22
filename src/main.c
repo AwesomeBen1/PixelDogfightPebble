@@ -1,26 +1,56 @@
 // Pixel Dogfight for Pebble
-// Made by Ben Chapman-Kish from 2015-04-09 to 2015-04-21
+// Made by Ben Chapman-Kish from 2015-04-09 to 2015-04-22
 #include "pebble.h"
 #include "plane.h"
 
-#define TIMER_MS 50
+#define REFRESH_TIMER 50
+#define BUTTON_REPEAT_TIMER 150
+#define END_GAME_TIMER 1000
 
 static Window *main_menu_w, *main_game_w;
 static MenuLayer *main_menu_l;
 static Layer *game_layer;
 static GBitmap *bg_bitmap, *p1_bitmap;
 static BitmapLayer *bg_layer;
-//static int p1attack = 1, p2attack = 1;
+static bool game_running = false, game_over = false;
+//static int p1attack = 1;
 static Plane *Player1;
 
+
+
 void game_render(Layer *layer, GContext *ctx) {
-	plane_render(Player1, ctx);
+	if (game_over) {
+		static char end_text_buffer[16];
+		if (Player1->crashed) {
+			snprintf(end_text_buffer, sizeof(end_text_buffer), "You lose!");
+		}
+		graphics_context_set_fill_color(ctx, GColorBlack);
+		graphics_fill_rect(ctx, (GRect) {.origin = {15, 30}, .size = {144 - 30, 154 - 60}}, 0, GCornerNone);
+		graphics_context_set_fill_color(ctx, GColorWhite);
+		graphics_fill_rect(ctx, (GRect) {.origin = {17, 32}, .size = {144 - 34, 154 - 64}}, 0, GCornerNone);
+		graphics_context_set_text_color(ctx, GColorBlack);
+		graphics_draw_text(ctx, end_text_buffer, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD), (GRect) {.origin = {10, 58}, .size = {144 - 20, 154 - 20}}, GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
+	} else {
+		plane_render(Player1, ctx);
+	}
+}
+
+static void end_game(void *data) {
+	game_running = false;
+	game_over = true;
+	layer_mark_dirty(game_layer);
 }
 
 static void update_game_frame(void *data) {
-	plane_move(Player1);
-	app_timer_register(TIMER_MS, update_game_frame, NULL);
+	if (Player1->crashed) {
+		app_timer_register(END_GAME_TIMER, end_game, NULL);
+	} else {
+		plane_move(Player1);
+	}
 	layer_mark_dirty(game_layer);
+	if (game_running) {
+		app_timer_register(REFRESH_TIMER, update_game_frame, NULL);
+	}	
 }
 
 
@@ -52,8 +82,8 @@ static void rot_down_handler(ClickRecognizerRef recognizer, void *context) {
 static void click_config_provider(void *context) {
 	/*window_single_click_subscribe(BUTTON_ID_SELECT, single_shot_handler);
 	window_long_click_subscribe(BUTTON_ID_SELECT, 0, repeat_shot_handler, NULL);*/
-	window_single_repeating_click_subscribe(BUTTON_ID_UP, 200, rot_up_handler);
-	window_single_repeating_click_subscribe(BUTTON_ID_DOWN, 200, rot_down_handler);
+	window_single_repeating_click_subscribe(BUTTON_ID_UP, BUTTON_REPEAT_TIMER, rot_up_handler);
+	window_single_repeating_click_subscribe(BUTTON_ID_DOWN, BUTTON_REPEAT_TIMER, rot_down_handler);
 }
 
 
@@ -125,10 +155,14 @@ void game_window_load(Window *window) {
 	
 	Player1 = plane_create(1, 20, 50, 0);
 	
-	app_timer_register(TIMER_MS, update_game_frame, NULL);
+	game_running = true;
+	game_over = false;
+	app_timer_register(REFRESH_TIMER, update_game_frame, NULL);
 }
 
 void game_window_unload(Window *window) {
+	game_running = false;
+	game_over = true;
 	layer_destroy(game_layer);
 	plane_destroy(Player1);
 	gbitmap_destroy(p1_bitmap);

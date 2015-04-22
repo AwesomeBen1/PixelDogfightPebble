@@ -2,7 +2,11 @@
 #include "plane.h"
 
 void plane_render(Plane *plane, GContext *ctx) {
-	graphics_draw_bitmap_in_rect(ctx, plane->bitmaps[plane->rot], (GRect) {.origin = {(plane->x / 10 - plane->w / 2), (plane->y / 10 - plane->h / 2)}, .size = {plane->w, plane->h}});
+	if (plane->crashed) {
+		graphics_draw_bitmap_in_rect(ctx, plane->bitmaps[0], (GRect) {.origin = {(plane->x / 10 - plane->w / 2), (plane->y / 10 - plane->h / 2)}, .size = {15, 12}});
+	} else {
+		graphics_draw_bitmap_in_rect(ctx, plane->bitmaps[plane->rot], (GRect) {.origin = {(plane->x / 10 - plane->w / 2), (plane->y / 10 - plane->h / 2)}, .size = {plane->w, plane->h}});
+	}
 }
 
 void plane_move(Plane *plane) {
@@ -14,6 +18,12 @@ void plane_move(Plane *plane) {
 		plane->x = -50;
 	} else if (plane->x / 10 < -5) {
 		plane->x = (144 + 5) * 10;
+	}
+	if (plane->y / 10 > 102) {
+		plane->crashed = true;
+	} else if (plane->y / 10 < -5) {
+		plane->rot = 12;
+		update_bitmaps(plane);
 	}
 }
 
@@ -48,6 +58,7 @@ Plane *plane_create(int player, int x, int y, int rot) {
 	new_plane->cdwn = 20;
 	new_plane->w = 15;
 	new_plane->h = 12;
+	new_plane->crashed = false;
 	if (player == 1) {
 		// Yes, it's awful, but RotBitmapLayer doesn't work for my purposes
 		new_plane->bitmaps[0] = gbitmap_create_with_resource(RESOURCE_ID_PLANE1_R0);
