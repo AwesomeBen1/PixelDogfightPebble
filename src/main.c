@@ -1,6 +1,7 @@
 // Pixel Dogfight for Pebble
 // Made by Ben Chapman-Kish from 2015-04-09 to 2015-04-20
-#include <pebble.h>
+#include "pebble.h"
+#include "plane.c"
 	
 #define TIMER_MS 50
 
@@ -13,13 +14,11 @@ static BitmapLayer *bg_layer;
 static Plane *Player1;
 
 void game_render(Layer *layer, GContext *ctx) {
-	player1_render(ctx);
+	plane_render(Player1, ctx);
 }
 
 static void update_game_frame(void *data) {
-	player1_move();
-	// Player 1 movement logic
-	
+	plane_move(Player1);
 	
 	app_timer_register(TIMER_MS, update_game_frame, NULL);
 	layer_mark_dirty(game_layer);
@@ -32,18 +31,18 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
 }
 
 static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
-	Player1->angle = (Player1->angle + 10) % 360;
+	Player1->rot = (Player1->rot + 1) % 16;
 }
 
 static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
-	Player1->angle = (Player1->angle - 10) % 360;
+	Player1->rot = (Player1->rot - 1) % 16;
 }
 
 static void click_config_provider(void *context) {
 	window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
 	window_single_click_subscribe(BUTTON_ID_UP, up_click_handler);
 	window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
-};
+}
 
 
 
@@ -120,6 +119,7 @@ void game_window_load(Window *window) {
 
 void game_window_unload(Window *window) {
 	layer_destroy(game_layer);
+	plane_destroy(Player1);
 	gbitmap_destroy(p1_bitmap);
 	gbitmap_destroy(bg_bitmap);
 	bitmap_layer_destroy(bg_layer);
