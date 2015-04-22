@@ -1,8 +1,8 @@
 // Pixel Dogfight for Pebble
-// Made by Ben Chapman-Kish from 2015-04-09 to 2015-04-20
+// Made by Ben Chapman-Kish from 2015-04-09 to 2015-04-21
 #include "pebble.h"
-#include "plane.c"
-	
+#include "plane.h"
+
 #define TIMER_MS 50
 
 static Window *main_menu_w, *main_game_w;
@@ -19,29 +19,41 @@ void game_render(Layer *layer, GContext *ctx) {
 
 static void update_game_frame(void *data) {
 	plane_move(Player1);
-	
 	app_timer_register(TIMER_MS, update_game_frame, NULL);
 	layer_mark_dirty(game_layer);
 }
 
 
 
-static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
+/*static void single_shot_handler(ClickRecognizerRef recognizer, void *context) {
 	
 }
 
-static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
-	Player1->rot = (Player1->rot + 1) % 16;
+static void repeat_shot_handler(ClickRecognizerRef recognizer, void *context) {
+	
+}*/
+
+static void rot_up_handler(ClickRecognizerRef recognizer, void *context) {
+	Player1->rot += 1;
+	if (Player1->rot > 15) {
+		Player1->rot = 0;
+	}
+	update_bitmaps(Player1);
 }
 
-static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
-	Player1->rot = (Player1->rot - 1) % 16;
+static void rot_down_handler(ClickRecognizerRef recognizer, void *context) {
+	Player1->rot -= 1;
+	if (Player1->rot < 0) {
+		Player1->rot = 15;
+	}
+	update_bitmaps(Player1);
 }
 
 static void click_config_provider(void *context) {
-	window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
-	window_single_click_subscribe(BUTTON_ID_UP, up_click_handler);
-	window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
+	/*window_single_click_subscribe(BUTTON_ID_SELECT, single_shot_handler);
+	window_long_click_subscribe(BUTTON_ID_SELECT, 0, repeat_shot_handler, NULL);*/
+	window_single_repeating_click_subscribe(BUTTON_ID_UP, 200, rot_up_handler);
+	window_single_repeating_click_subscribe(BUTTON_ID_DOWN, 200, rot_down_handler);
 }
 
 
@@ -111,8 +123,7 @@ void game_window_load(Window *window) {
 	layer_set_update_proc(game_layer, game_render);
 	layer_add_child(window_layer, game_layer);
 	
-	p1_bitmap = gbitmap_create_with_resource(RESOURCE_ID_PLANE1_IMAGE);
-	Player1 = plane_create(20, 120, 0);
+	Player1 = plane_create(1, 20, 50, 0);
 	
 	app_timer_register(TIMER_MS, update_game_frame, NULL);
 }
@@ -167,6 +178,7 @@ void init() {
 
 void deinit() {
 	window_destroy(main_menu_w);
+	window_destroy(main_game_w);
 }
 
 int main(void) {

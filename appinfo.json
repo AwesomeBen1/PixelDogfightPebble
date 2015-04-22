@@ -9,6 +9,66 @@
     "resources": {
         "media": [
             {
+                "file": "images/plane1a16.png",
+                "name": "PLANE1_R15",
+                "type": "png"
+            },
+            {
+                "file": "images/plane1a15.png",
+                "name": "PLANE1_R14",
+                "type": "png"
+            },
+            {
+                "file": "images/plane1a14.png",
+                "name": "PLANE1_R13",
+                "type": "png"
+            },
+            {
+                "file": "images/plane1a13.png",
+                "name": "PLANE1_R12",
+                "type": "png"
+            },
+            {
+                "file": "images/plane1a12.png",
+                "name": "PLANE1_R11",
+                "type": "png"
+            },
+            {
+                "file": "images/plane1a11.png",
+                "name": "PLANE1_R10",
+                "type": "png"
+            },
+            {
+                "file": "images/plane1a10.png",
+                "name": "PLANE1_R9",
+                "type": "png"
+            },
+            {
+                "file": "images/plane1a9.png",
+                "name": "PLANE1_R8",
+                "type": "png"
+            },
+            {
+                "file": "images/plane1a8.png",
+                "name": "PLANE1_R7",
+                "type": "png"
+            },
+            {
+                "file": "images/plane1a7.png",
+                "name": "PLANE1_R6",
+                "type": "png"
+            },
+            {
+                "file": "images/plane1a6.png",
+                "name": "PLANE1_R5",
+                "type": "png"
+            },
+            {
+                "file": "images/plane1a5.png",
+                "name": "PLANE1_R4",
+                "type": "png"
+            },
+            {
                 "file": "images/plane1a4.png",
                 "name": "PLANE1_R3",
                 "type": "png"
