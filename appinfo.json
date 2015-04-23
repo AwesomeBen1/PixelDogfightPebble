@@ -9,8 +9,8 @@
     "resources": {
         "media": [
             {
-                "file": "images/you-lose.png",
-                "name": "ENG_GAME_LOSE",
+                "file": "images/explosiona.png",
+                "name": "EXPLOSION",
                 "type": "png"
             },
             {

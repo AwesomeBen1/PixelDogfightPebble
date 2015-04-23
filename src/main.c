@@ -2,6 +2,7 @@
 // Made by Ben Chapman-Kish from 2015-04-09 to 2015-04-22
 #include "pebble.h"
 #include "plane.h"
+#include "weapons.h"
 
 #define REFRESH_TIMER 50
 #define BUTTON_REPEAT_TIMER 150
@@ -10,13 +11,12 @@
 static Window *main_menu_w, *main_game_w;
 static MenuLayer *main_menu_l;
 static Layer *game_layer;
-static GBitmap *bg_bitmap, *p1_bitmap;
+static GBitmap *bg_bitmap;
 static BitmapLayer *bg_layer;
 static bool game_running = false, game_over = false;
-//static int p1attack = 1;
+static int p1attack = 0, p1firing = 0;
 static Plane *Player1;
-
-
+static Bullet *bullets;
 
 void game_render(Layer *layer, GContext *ctx) {
 	if (game_over) {
@@ -29,8 +29,10 @@ void game_render(Layer *layer, GContext *ctx) {
 		graphics_context_set_fill_color(ctx, GColorWhite);
 		graphics_fill_rect(ctx, (GRect) {.origin = {17, 32}, .size = {144 - 34, 154 - 64}}, 0, GCornerNone);
 		graphics_context_set_text_color(ctx, GColorBlack);
-		graphics_draw_text(ctx, end_text_buffer, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD), (GRect) {.origin = {10, 58}, .size = {144 - 20, 154 - 20}}, GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
+		graphics_draw_text(ctx, end_text_buffer, fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD), \
+			(GRect) {.origin = {10, 58}, .size = {144 - 20, 154 - 20}}, GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
 	} else {
+		bullets_render(bullets, ctx);
 		plane_render(Player1, ctx);
 	}
 }
@@ -46,6 +48,16 @@ static void update_game_frame(void *data) {
 		app_timer_register(END_GAME_TIMER, end_game, NULL);
 	} else {
 		plane_move(Player1);
+		bullets_move(bullets);
+		if (Player1->cdwn > 0) {
+			--(Player1->cdwn);
+		} else if (p1firing > 0) {
+			if (p1firing == 1) {
+				--p1firing;
+			}
+			bullets = bullet_create(bullets, Player1->player, Player1->x, Player1->y, Player1->rot);
+			Player1->cdwn = Player1->firerate;
+		}
 	}
 	layer_mark_dirty(game_layer);
 	if (game_running) {
@@ -53,15 +65,18 @@ static void update_game_frame(void *data) {
 	}	
 }
 
-
-
-/*static void single_shot_handler(ClickRecognizerRef recognizer, void *context) {
-	
+static void single_shot_handler(ClickRecognizerRef recognizer, void *context) {
+	p1firing = 1;
 }
 
 static void repeat_shot_handler(ClickRecognizerRef recognizer, void *context) {
-	
-}*/
+	if (p1firing < 2) {
+		p1firing = 2;
+		vibes_short_pulse();
+	} else {
+		p1firing = 0;
+	}
+}
 
 static void rot_up_handler(ClickRecognizerRef recognizer, void *context) {
 	Player1->rot += 1;
@@ -80,8 +95,8 @@ static void rot_down_handler(ClickRecognizerRef recognizer, void *context) {
 }
 
 static void click_config_provider(void *context) {
-	/*window_single_click_subscribe(BUTTON_ID_SELECT, single_shot_handler);
-	window_long_click_subscribe(BUTTON_ID_SELECT, 0, repeat_shot_handler, NULL);*/
+	window_single_click_subscribe(BUTTON_ID_SELECT, single_shot_handler);
+	window_long_click_subscribe(BUTTON_ID_SELECT, 0, repeat_shot_handler, NULL);
 	window_single_repeating_click_subscribe(BUTTON_ID_UP, BUTTON_REPEAT_TIMER, rot_up_handler);
 	window_single_repeating_click_subscribe(BUTTON_ID_DOWN, BUTTON_REPEAT_TIMER, rot_down_handler);
 }
@@ -153,7 +168,7 @@ void game_window_load(Window *window) {
 	layer_set_update_proc(game_layer, game_render);
 	layer_add_child(window_layer, game_layer);
 	
-	Player1 = plane_create(1, 20, 50, 0);
+	Player1 = plane_create(1, 20, 50, 0, p1attack);
 	
 	game_running = true;
 	game_over = false;
@@ -165,7 +180,7 @@ void game_window_unload(Window *window) {
 	game_over = true;
 	layer_destroy(game_layer);
 	plane_destroy(Player1);
-	gbitmap_destroy(p1_bitmap);
+	bullets_destroy(bullets);
 	gbitmap_destroy(bg_bitmap);
 	bitmap_layer_destroy(bg_layer);
 }
