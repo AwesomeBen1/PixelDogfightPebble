@@ -5,6 +5,7 @@ typedef struct {
 	int x, y;
 	int8_t player;
 	int32_t angle;
+	bool looped;
 	GBitmap *bitmap;
 } Bullet;
 
@@ -12,4 +13,4 @@ void bullets_destroy(Bullet * bullets);
 void bullets_render(Bullet * bullets, GContext *ctx);
 void bullets_move(Bullet * bullets);
 Bullet *bullet_create(Bullet * bullets, int player, int x, int y, int rot);
-//Bullet * bullets_list_create(void);
+Bullet *bullet_destroy(Bullet * bullets, int aindex);

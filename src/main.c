@@ -8,15 +8,19 @@
 #define BUTTON_REPEAT_TIMER 150
 #define END_GAME_TIMER 1000
 
+#define NUM_FIRE_MODES 2
+
 static Window *main_menu_w, *main_game_w;
 static MenuLayer *main_menu_l;
 static Layer *game_layer;
 static GBitmap *bg_bitmap;
 static BitmapLayer *bg_layer;
 static bool game_running = false, game_over = false;
-static int p1attack = 0, p1firing = 0;
+static int p1attack = 0, p1firing = 0, p2attack = 0;
 static Plane *Player1;
 static Bullet *bullets;
+
+static char *fire_modes[] = {"Normal Bullet", "Bullet Burst"};
 
 void game_render(Layer *layer, GContext *ctx) {
 	if (game_over) {
@@ -49,14 +53,22 @@ static void update_game_frame(void *data) {
 	} else {
 		plane_move(Player1);
 		bullets_move(bullets);
-		if (Player1->cdwn > 0) {
-			--(Player1->cdwn);
-		} else if (p1firing > 0) {
-			if (p1firing == 1) {
-				--p1firing;
+		if (!Player1->crashed) {
+			if (Player1->cdwn > 0) {
+				--(Player1->cdwn);
+			} else if (p1firing > 0) {
+				bullets = bullet_create(bullets, Player1->player, Player1->x, Player1->y, Player1->rot);
+				if (p1attack == 0 || Player1->burstrepeat >= 2) {
+					Player1->cdwn = Player1->firerate;
+					Player1->burstrepeat = 0;
+					if (p1firing == 1) {
+						--p1firing;
+					}
+				} else if (p1attack == 1) {
+					Player1->cdwn = 2;
+					++(Player1->burstrepeat);
+				}
 			}
-			bullets = bullet_create(bullets, Player1->player, Player1->x, Player1->y, Player1->rot);
-			Player1->cdwn = Player1->firerate;
 		}
 	}
 	layer_mark_dirty(game_layer);
@@ -123,10 +135,10 @@ static void menu_draw_row(GContext* ctx, const Layer *cell_layer, MenuIndex *cel
 			menu_cell_basic_draw(ctx, cell_layer, "Start Game!", NULL, NULL);
 			break;
 		case 1:
-			menu_cell_basic_draw(ctx, cell_layer, "Player Attack", "Bullet", NULL);
+			menu_cell_basic_draw(ctx, cell_layer, "Player Attack", fire_modes[p1attack], NULL);
 			break;
 		case 2:
-			menu_cell_basic_draw(ctx, cell_layer, "Enemy Attack", "Bullet", NULL);
+			menu_cell_basic_draw(ctx, cell_layer, "Enemy Attack", fire_modes[p2attack], NULL);
 			break;
 		case 3:
 			menu_cell_basic_draw(ctx, cell_layer, "Help & Credits", NULL, NULL);
@@ -140,6 +152,10 @@ static void menu_select(MenuLayer *menu_layer, MenuIndex *cell_index, void *data
 	switch (cell_index->row) {
 		case 0:
 			window_stack_push(main_game_w, true);
+			break;
+		case 1:
+			p1attack = (p1attack + 1) % NUM_FIRE_MODES;
+			layer_mark_dirty(menu_layer_get_layer(main_menu_l));
 			break;
 		default:
 			break;

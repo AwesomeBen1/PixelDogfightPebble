@@ -6,7 +6,7 @@
 typedef struct {
 	// Positions are in tenths of a pixel
 	int x, y, speed, cdwn, firerate;
-	int8_t player, rot;
+	int8_t player, rot, burstrepeat;
 	int16_t w, h;
 	bool crashed;
 	GBitmap* bitmaps[16];

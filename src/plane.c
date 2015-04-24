@@ -3,7 +3,7 @@
 
 #define PLANE_SPEED 20
 #define BULLET_FIRE_RATE 20
-#define BURST_FIRE_RATE 50
+#define BURST_FIRE_RATE 45
 
 void plane_render(Plane *plane, GContext *ctx) {
 	if (plane->crashed) {
@@ -15,15 +15,15 @@ void plane_render(Plane *plane, GContext *ctx) {
 
 void plane_move(Plane *plane) {
 	int32_t plane_angle = plane->rot * TRIG_MAX_ANGLE / 16;
-	plane->x += (cos_lookup(plane_angle) * PLANE_SPEED / TRIG_MAX_RATIO);
-	plane->y += (-sin_lookup(plane_angle) * PLANE_SPEED / TRIG_MAX_RATIO);
+	plane->x += cos_lookup(plane_angle) * PLANE_SPEED / TRIG_MAX_RATIO;
+	plane->y -= sin_lookup(plane_angle) * PLANE_SPEED / TRIG_MAX_RATIO;
 	// Optimize later
 	if (plane->x / 10 > 144 + 5) {
 		plane->x = -50;
 	} else if (plane->x / 10 < -5) {
 		plane->x = (144 + 5) * 10;
 	}
-	if (plane->y / 10 > 104) {
+	if (plane->y / 10 > 103) {
 		plane->crashed = true;
 	} else if (plane->y / 10 < -5) {
 		plane->rot = 12;
@@ -64,6 +64,7 @@ Plane *plane_create(int player, int x, int y, int rot, int attack) {
 	new_plane->y = y * 10;
 	new_plane->rot = rot;
 	new_plane->cdwn = new_plane->firerate;
+	new_plane->burstrepeat = 0;
 	new_plane->w = 15;
 	new_plane->h = 12;
 	new_plane->crashed = false;
