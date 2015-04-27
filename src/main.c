@@ -185,6 +185,8 @@ void game_window_load(Window *window) {
 	layer_add_child(window_layer, game_layer);
 	
 	Player1 = plane_create(1, 20, 50, 0, p1attack);
+	bullets = bullets_create(bullets);
+	bullet_bmps_init();
 	
 	game_running = true;
 	game_over = false;
@@ -194,9 +196,12 @@ void game_window_load(Window *window) {
 void game_window_unload(Window *window) {
 	game_running = false;
 	game_over = true;
-	layer_destroy(game_layer);
-	plane_destroy(Player1);
+	
+	bullet_bmps_deinit();
 	bullets_destroy(bullets);
+	plane_destroy(Player1);
+	
+	layer_destroy(game_layer);
 	gbitmap_destroy(bg_bitmap);
 	bitmap_layer_destroy(bg_layer);
 }

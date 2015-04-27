@@ -3,18 +3,16 @@
 
 #define BULLET_SPEED 60
 
-static uint16_t bullet_list_len = 0, bullets_active = 0;
+static uint16_t bullet_list_len, bullets_active;
+static GBitmap *bullet_bitmaps[2];
 
 void bullets_destroy(Bullet * bullets) {
-	for (int i = 0; i < bullet_list_len; ++i) {
-  	gbitmap_destroy(bullets[i].bitmap);
-	}
 	free(bullets);
 }
 
 void bullets_render(Bullet * bullets, GContext *ctx) {
 	for (int i = 0; i < bullets_active; ++i) {
-		graphics_draw_bitmap_in_rect(ctx, bullets[i].bitmap, (GRect) {.origin = {(bullets[i].x / 10 - 1), (bullets[i].y / 10 - 1)}, .size = {3, 3}});
+		graphics_draw_bitmap_in_rect(ctx, bullet_bitmaps[bullets[i].player - 1], (GRect) {.origin = {(bullets[i].x / 10 - 1), (bullets[i].y / 10 - 1)}, .size = {3, 3}});
 	}
 }
 
@@ -44,12 +42,16 @@ void bullets_move(Bullet * bullets) {
 	}
 }
 
+Bullet *bullets_create(Bullet * bullets) {
+	bullets_active = 0;
+	bullet_list_len = 1;
+	bullets = (Bullet *) malloc(sizeof(Bullet));
+	return bullets;
+}
+
 Bullet *bullet_create(Bullet * bullets, int player, int x, int y, int rot) {
 	++bullets_active;
-	if (bullet_list_len == 0) {
-		++bullet_list_len;
-		bullets = (Bullet *) malloc(sizeof(Bullet));
-	} else if (bullets_active > bullet_list_len) {
+	if (bullets_active > bullet_list_len) {
 		++bullet_list_len;
 		void* temp = realloc(bullets, bullets_active * sizeof(Bullet));
 		if(!temp) {
@@ -65,17 +67,23 @@ Bullet *bullet_create(Bullet * bullets, int player, int x, int y, int rot) {
 	bullets[aindex].y = y;
 	bullets[aindex].angle = rot * TRIG_MAX_ANGLE / 16;
 	bullets[aindex].looped = false;
-	if (player == 1) {
-		bullets[aindex].bitmap = gbitmap_create_with_resource(RESOURCE_ID_P1_BULLET);
-	}
 	return bullets;
 }
 
 Bullet *bullet_destroy(Bullet * bullets, int aindex) {
-	gbitmap_destroy(bullets[aindex].bitmap);
 	for (int i = aindex; i < bullets_active - aindex - 1; ++i) {
-		bullets[i] = bullets[i+1];
+		bullets[i] = bullets[i + 1];
 	}
 	--bullets_active;
 	return bullets;
+}
+
+void bullet_bmps_init(void) {
+	bullet_bitmaps[0] = gbitmap_create_with_resource(RESOURCE_ID_P1_BULLET);
+	bullet_bitmaps[1] = gbitmap_create_with_resource(RESOURCE_ID_P2_BULLET);
+}
+
+void bullet_bmps_deinit(void) {
+	gbitmap_destroy(bullet_bitmaps[0]);
+	gbitmap_destroy(bullet_bitmaps[1]);
 }
